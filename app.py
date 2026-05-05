@@ -1,7 +1,8 @@
-
+from datetime import datetime
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify
 
 from datetime import datetime
+from zoneinfo import ZoneInfo
 import os
 
 from dotenv import load_dotenv
@@ -19,6 +20,9 @@ SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
+def agora_brasilia():
+    return datetime.now(ZoneInfo("America/Sao_Paulo"))
+
 
 def carregar_precos():
     resposta = supabase.table("cardapio").select("dados").eq("id", "principal").execute()
@@ -32,7 +36,7 @@ def carregar_precos():
 def salvar_precos(novos_precos):
     supabase.table("cardapio").update({
         "dados": novos_precos,
-        "atualizado_em": datetime.now().isoformat()
+        "atualizado_em": agora_brasilia().isoformat()
     }).eq("id", "principal").execute()
 
 PRECOS = carregar_precos() 
@@ -153,7 +157,7 @@ def formulario_prato_feito():
     return render_template('form_prato.html')
 
 def gerar_numero_pedido():
-    hoje = datetime.now().strftime('%Y-%m-%d')
+    hoje = agora_brasilia().strftime('%Y-%m-%d')
 
     resposta = supabase.table("contador_pedidos").select("*").eq("data", hoje).execute()
 
@@ -195,7 +199,7 @@ def pedido():
         "nome": data.get("nome"),
         "telefone": data.get("telefone"),
         "endereco": data.get("endereco"),
-        "data_hora": datetime.now().strftime("%d/%m/%Y %H:%M"),
+        "data_hora": agora_brasilia().strftime("%d/%m/%Y %H:%M"),
         "valor_total": 0.0,
         "forma_pagamento": forma_pagamento,
         "troco_para": troco_para
