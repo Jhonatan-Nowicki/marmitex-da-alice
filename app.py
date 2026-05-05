@@ -7,6 +7,7 @@ import os
 
 from dotenv import load_dotenv
 from supabase import create_client
+from collections import defaultdict
 
 load_dotenv()
 
@@ -645,6 +646,90 @@ Data: {pedido['data_hora'].split(" ")[0]} Hora: {pedido['data_hora'].split(" ")[
     return conteudo, 200, {
         'Content-Type': 'text/plain; charset=utf-8'
     }
+
+@app.route("/fechamento")
+def fechamento():
+    if 'usuario' not in session or session['usuario'] != 'dono':
+        return redirect(url_for('login'))
+
+    data_hoje = agora_brasilia().strftime("%d/%m/%Y")
+
+    resposta = supabase.table("pedidos").select("*").execute()
+
+    pedidos_hoje = []
+
+    for p in resposta.data:
+        dados = p.get("dados", {})
+        data_hora = dados.get("data_hora", "")
+
+        if data_hora.startswith(data_hoje):
+            pedidos_hoje.append(p)
+
+    total = 0
+    total_pix = 0
+    total_cartao = 0
+    total_dinheiro = 0
+
+    total_marmitas = 0
+    total_pratos = 0
+
+    adicionais_vendidos = defaultdict(int)
+    bebidas_vendidas = defaultdict(int)
+    outros_vendidos = defaultdict(int)
+
+    for pedido in pedidos_hoje:
+        valor = pedido.get("valor_total", 0) or 0
+        forma = pedido.get("forma_pagamento", "")
+
+        total += float(valor)
+
+        if forma == "Pix":
+            total_pix += float(valor)
+        elif forma == "Cartão":
+            total_cartao += float(valor)
+        elif forma == "Dinheiro":
+            total_dinheiro += float(valor)
+
+        dados = pedido.get("dados", {})
+
+        for marmita in dados.get("marmitas", []):
+            total_marmitas += 1
+
+            for adicional in marmita.get("adicionais", []):
+                adicionais_vendidos[adicional["nome"]] += adicional.get("quantidade", 0)
+
+            for bebida in marmita.get("bebidas", []):
+                bebidas_vendidas[bebida["nome"]] += bebida.get("quantidade", 0)
+
+            for outro in marmita.get("outros", []):
+                outros_vendidos[outro["nome"]] += outro.get("quantidade", 0)
+
+        for prato in dados.get("pratos", []):
+            total_pratos += 1
+
+            for adicional in prato.get("adicionais", []):
+                adicionais_vendidos[adicional["nome"]] += adicional.get("quantidade", 0)
+
+            for bebida in prato.get("bebidas", []):
+                bebidas_vendidas[bebida["nome"]] += bebida.get("quantidade", 0)
+
+            for outro in prato.get("outros", []):
+                outros_vendidos[outro["nome"]] += outro.get("quantidade", 0)
+
+    return render_template("fechamento.html",
+        total=round(total, 2),
+        total_pix=round(total_pix, 2),
+        total_cartao=round(total_cartao, 2),
+        total_dinheiro=round(total_dinheiro, 2),
+        pedidos=len(pedidos_hoje),
+        marmitas=total_marmitas,
+        pratos=total_pratos,
+        adicionais=dict(adicionais_vendidos),
+        bebidas=dict(bebidas_vendidas),
+        outros=dict(outros_vendidos),
+        data_hoje=data_hoje,
+        hora_geracao=agora_brasilia().strftime("%H:%M")
+    )
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))

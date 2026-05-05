@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Fechamento do Dia</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        body {
+            background-image: url("/static/imagens/logo.png");
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center;
+            background-attachment: fixed;
+        }
+
+        @media print {
+            body {
+                background-image: url("/static/imagens/logo.png");
+                background-size: cover;
+                background-repeat: no-repeat;
+                background-position: center;
+            }
+
+            body * {
+                visibility: hidden;
+            }
+
+            .print-area,
+            .print-area * {
+                visibility: visible;
+            }
+
+            .print-area {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 58mm;
+                font-size: 12px;
+                background-color: rgb(255, 255, 255) !important;
+                padding: 16px;
+                border-radius: 12px;
+            }
+
+            .no-print {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body class="min-h-screen flex flex-col items-center justify-center relative text-black">
+
+    <!-- Container -->
+    <div class="print-area bg-white/40 backdrop-blur-md rounded-xl p-6 w-[230px] z-10 shadow-lg">
+
+        <h2 class="text-center font-bold text-xs mb-2">📊 FECHAMENTO DO DIA</h2>
+        <p class="text-center text-[10px] mb-2">{{ data_hoje }}</p>
+
+        <hr class="border-t border-gray-400 my-2">
+
+        <p class="font-bold text-center text-sm mb-2">
+            Total: R$ {{ '%.2f'|format(total) }}
+        </p>
+
+        <hr class="border-t border-gray-300 my-2">
+
+        <p><strong>Pix:</strong> R$ {{ '%.2f'|format(total_pix) }}</p>
+        <p><strong>Cartão:</strong> R$ {{ '%.2f'|format(total_cartao) }}</p>
+        <p><strong>Dinheiro:</strong> R$ {{ '%.2f'|format(total_dinheiro) }}</p>
+
+        <hr class="border-t border-gray-300 my-2">
+
+        <p><strong>Pedidos:</strong> {{ pedidos }}</p>
+        <p><strong>Marmitas:</strong> {{ marmitas }}</p>
+        <p><strong>Pratos:</strong> {{ pratos }}</p>
+
+        <hr class="border-t border-gray-300 my-2">
+
+        <p class="font-bold">Adicionais vendidos</p>
+        {% if adicionais %}
+        {% for nome, qtd in adicionais.items() %}
+        <p>{{ qtd }}x {{ nome }}</p>
+        {% endfor %}
+        {% else %}
+        <p class="text-xs">Nenhum adicional vendido</p>
+        {% endif %}
+
+        <hr class="border-t border-gray-300 my-2">
+
+        <p class="font-bold">Bebidas vendidas</p>
+        {% if bebidas %}
+        {% for nome, qtd in bebidas.items() %}
+        <p>{{ qtd }}x {{ nome }}</p>
+        {% endfor %}
+        {% else %}
+        <p class="text-xs">Nenhuma bebida vendida</p>
+        {% endif %}
+
+        <hr class="border-t border-gray-300 my-2">
+
+        <p class="font-bold">Outros vendidos</p>
+        {% if outros %}
+        {% for nome, qtd in outros.items() %}
+        <p>{{ qtd }}x {{ nome }}</p>
+        {% endfor %}
+        {% else %}
+        <p class="text-xs">Nenhum outro item vendido</p>
+        {% endif %}
+
+        <hr class="border-t border-gray-300 my-2">
+
+        <p class="text-right text-[10px]">
+            Gerado às {{ hora_geracao }}
+        </p>
+
+    </div>
+
+    <!-- BOTÕES -->
+    <div class="no-print mt-4 flex gap-3 justify-center">
+
+        <button onclick="window.print()" class="font-bold bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+            Imprimir
+        </button>
+
+        <a href="/escolha" class="font-bold bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-800">
+            Voltar
+        </a>
+
+    </div>
+
+</body>
+
+</html>

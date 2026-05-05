@@ -17,14 +17,37 @@
 </head>
 
 <body class="min-h-screen flex items-center justify-center bg-gray-100 text-black px-4">
+  <!-- BOTÃO MENU -->
+  <!-- BOTÃO MENU -->
+<div class="fixed top-4 left-4 z-50">
+  <button onclick="toggleMenu()" 
+    class="bg-white text-black px-4 py-2 rounded shadow font-semibold border">
+    ☰ Menu
+  </button>
+</div>
+
+<!-- MENU -->
+<div id="menu" 
+  class="fixed top-16 left-4 bg-white rounded-lg shadow-xl p-3 hidden flex flex-col gap-2 z-50 w-44">
+
   {% if session.get('usuario') == 'dono' %}
-  <div class="fixed top-4 right-4">
-    <a href="{{ url_for('editar_cardapio') }}"
-      class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition">
-      Editar Cardápio
-    </a>
-  </div>
+  <a href="{{ url_for('editar_cardapio') }}"
+     class="bg-red-600 text-white px-3 py-2 rounded text-center text-sm hover:bg-red-700 transition">
+    Editar Cardápio
+  </a>
+
+  <a href="{{ url_for('fechamento') }}"
+     class="bg-green-600 text-white px-3 py-2 rounded text-center text-sm hover:bg-green-700 transition">
+    Fechamento do Dia
+  </a>
   {% endif %}
+
+  <a href="{{ url_for('logout') }}"
+     class="bg-gray-700 text-white px-3 py-2 rounded text-center text-sm hover:bg-gray-800 transition">
+    Sair
+  </a>
+
+</div>
 
 
   <div class="bg-white/40 backdrop-blur-md p-6 sm:p-8 rounded-xl shadow-lg w-full max-w-md text-center space-y-6 z-10">
@@ -50,6 +73,13 @@
       </form>
     </div>
   </div>
+
+  <script>
+    function toggleMenu() {
+      const menu = document.getElementById("menu");
+      menu.classList.toggle("hidden");
+    }
+  </script>
 
 </body>
 
