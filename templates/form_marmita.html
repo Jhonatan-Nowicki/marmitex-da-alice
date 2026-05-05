@@ -75,111 +75,98 @@
     <h1 class="text-xl sm:text-2xl font-bold text-center text-black">Pedido - Marmita</h1>
 
     <!-- Tipo de pedido -->
+    <div class="  rounded-lg  py-3">
+      <p class="font-bold ">Tipo do pedido: Balcão / Retirada</p>
+      <input type="hidden" name="tipo_pedido" value="balcao">
+    </div>
     <div>
-      <label class="block text-sm font-semibold">Tipo de pedido:</label>
-      <select name="tipo_pedido" id="tipo_pedido" class="w-full border rounded px-3 py-2 mt-1 text-sm">
-        <option value="" disabled selected>Escolha uma opção</option>
-        <option value="Entrega">Entrega</option>
-        <option value="Retirada">Retirada</option>
-      </select>
-    </div>
-
-    <!-- Dados do cliente -->
-    <div id="campos-cliente" style="display: none;">
-      <div>
-        <label class="block text-sm font-semibold">Nome:</label>
-        <input name="nome" class="w-full border rounded px-3 py-2 mt-1 text-sm" required />
-      </div>
-      <div id="campos-entrega" style="display: none;">
-        <label class="block text-sm font-semibold mt-2">Telefone:</label>
-        <input name="telefone" class="w-full border rounded px-3 py-2 mt-1 text-sm" />
-        <label class="block text-sm font-semibold mt-2">Endereço:</label>
-        <input name="endereco" class="w-full border rounded px-3 py-2 mt-1 text-sm" />
-      </div>
-    </div>
-
-    <!-- Escolha da Marmita -->
-    <div id="marmita-form" class="space-y-4">
-      <!-- Tamanhos dinâmicos -->
-      <div>
-        <label class="block font-semibold">Tamanho da Marmita:</label>
-        <div class="flex flex-wrap gap-2 mt-1" id="tamanhos">
-          <!-- JS insere aqui -->
-        </div>
-      </div>
-
-      <!-- Carnes dinâmicas -->
-      <div>
-        <label class="block font-semibold">Tipo de Carne:</label>
-        <div class="flex flex-wrap gap-2 mt-1" id="carnes">
-          <!-- JS insere aqui -->
-        </div>
-      </div>
-
-      <!-- Adicionais dinâmicos -->
-      <div>
-        <label class="block font-semibold">Adicionais:</label>
-        <div class="flex flex-wrap gap-2 mt-1" id="adicionais">
-          <!-- JS insere aqui -->
-        </div>
-      </div>
-
-      <!-- Bebidas dinâmicas -->
-      <div>
-        <label class="block font-semibold">Bebidas:</label>
-        <div class="flex flex-wrap gap-2 mt-1" id="bebidas">
-          <!-- JS insere aqui -->
-        </div>
-      </div>
-
-      <!-- Outros dinâmicos -->
-      <div>
-        <label class="block font-semibold">Outros:</label>
-        <div class="flex flex-wrap gap-2 mt-1" id="outros">
-          <!-- JS insere aqui -->
-        </div>
-      </div>
-
-
-      <!-- Observações -->
-      <div>
-        <label class="block font-semibold">Observações:</label>
-        <textarea name="observacoes" id="observacoes" class="w-full border rounded px-3 py-2 mt-1 text-sm"
-          placeholder="Ex: sem salada, com ovo..."></textarea>
-      </div>
-    </div>
-
-    <!-- Botão de adicionar -->
-    <button type="button" id="add-marmita"
-      class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded transition">
-      + Adicionar Marmita
-    </button>
-
-    <!-- Sacola -->
-    <div id="sacola" class="space-y-3 pt-4"></div>
-
-    <!-- Forma de pagamento -->
-    <div>
-      <label class="block font-semibold">Forma de Pagamento:</label>
-      <div class="flex flex-wrap gap-2 mt-2" id="pagamento-opcoes">
-        <button type="button" class="btn-option" data-value="Pix">Pix</button>
-        <button type="button" class="btn-option" data-value="Cartão">Cartão</button>
-        <button type="button" class="btn-option" data-value="Dinheiro">Dinheiro</button>
-      </div>
-      <input type="hidden" name="forma_pagamento" id="forma_pagamento" />
-
-      <div id="campo-troco" class="mt-3" style="display: none;">
-        <label for="troco_para" class="font-semibold">Troco para quanto?</label>
-        <input type="text" id="troco_para" name="troco_para" placeholder="R$ 0,00" class="w-full p-2 rounded" />
-
-      </div>
+      <label class="block text-sm font-semibold">Nome:</label>
+      <input name="nome" class="w-full border rounded px-3 py-2 mt-1 text-sm" required />
     </div>
 
 
-    <button type="submit"
-      class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded transition">
-      Finalizar Pedido
-    </button>
+      <!-- Escolha da Marmita -->
+      <div id="marmita-form" class="space-y-4">
+        <!-- Tamanhos dinâmicos -->
+        <div>
+          <label class="block font-semibold">Tamanho da Marmita:</label>
+          <div class="flex flex-wrap gap-2 mt-1" id="tamanhos">
+            <!-- JS insere aqui -->
+          </div>
+        </div>
+
+        <!-- Carnes dinâmicas -->
+        <div>
+          <label class="block font-semibold">Tipo de Carne:</label>
+          <div class="flex flex-wrap gap-2 mt-1" id="carnes">
+            <!-- JS insere aqui -->
+          </div>
+        </div>
+
+        <!-- Adicionais dinâmicos -->
+        <div>
+          <label class="block font-semibold">Adicionais:</label>
+          <div class="flex flex-wrap gap-2 mt-1" id="adicionais">
+            <!-- JS insere aqui -->
+          </div>
+        </div>
+
+        <!-- Bebidas dinâmicas -->
+        <div>
+          <label class="block font-semibold">Bebidas:</label>
+          <div class="flex flex-wrap gap-2 mt-1" id="bebidas">
+            <!-- JS insere aqui -->
+          </div>
+        </div>
+
+        <!-- Outros dinâmicos -->
+        <div>
+          <label class="block font-semibold">Outros:</label>
+          <div class="flex flex-wrap gap-2 mt-1" id="outros">
+            <!-- JS insere aqui -->
+          </div>
+        </div>
+
+
+        <!-- Observações -->
+        <div>
+          <label class="block font-semibold">Observações:</label>
+          <textarea name="observacoes" id="observacoes" class="w-full border rounded px-3 py-2 mt-1 text-sm"
+            placeholder="Ex: sem salada, com ovo..."></textarea>
+        </div>
+      </div>
+
+      <!-- Botão de adicionar -->
+      <button type="button" id="add-marmita"
+        class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded transition">
+        + Adicionar Marmita
+      </button>
+
+      <!-- Sacola -->
+      <div id="sacola" class="space-y-3 pt-4"></div>
+
+      <!-- Forma de pagamento -->
+      <div>
+        <label class="block font-semibold">Forma de Pagamento:</label>
+        <div class="flex flex-wrap gap-2 mt-2" id="pagamento-opcoes">
+          <button type="button" class="btn-option" data-value="Pix">Pix</button>
+          <button type="button" class="btn-option" data-value="Cartão">Cartão</button>
+          <button type="button" class="btn-option" data-value="Dinheiro">Dinheiro</button>
+        </div>
+        <input type="hidden" name="forma_pagamento" id="forma_pagamento" />
+
+        <div id="campo-troco" class="mt-3" style="display: none;">
+          <label for="troco_para" class="font-semibold">Troco para quanto?</label>
+          <input type="text" id="troco_para" name="troco_para" placeholder="R$ 0,00" class="w-full p-2 rounded" />
+
+        </div>
+      </div>
+
+
+      <button type="submit"
+        class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded transition">
+        Finalizar Pedido
+      </button>
   </form>
 </body>
 

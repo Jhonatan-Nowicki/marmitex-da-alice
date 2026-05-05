@@ -1,29 +1,39 @@
-import json
+
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify
 
 from datetime import datetime
 import os
 
 from dotenv import load_dotenv
-import os
+from supabase import create_client
 
+load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = 'chave_super_secreta'
 
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+
+
+
+supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 
 def carregar_precos():
-    try:
-        with open("precos.json", "r", encoding="utf-8") as f:
-            return json.load(f)
-    except FileNotFoundError:
-        return PRECOS
+    resposta = supabase.table("cardapio").select("dados").eq("id", "principal").execute()
+
+    if resposta.data:
+        return resposta.data[0]["dados"]
+
+    return {}
 
     
 def salvar_precos(novos_precos):
-    with open("precos.json", "w", encoding="utf-8") as f:
-        json.dump(novos_precos, f, indent=2, ensure_ascii=False)
+    supabase.table("cardapio").update({
+        "dados": novos_precos,
+        "atualizado_em": datetime.now().isoformat()
+    }).eq("id", "principal").execute()
 
 PRECOS = carregar_precos() 
 
@@ -36,9 +46,6 @@ def ping():
     return "OK", 200
 
 
-
-
-load_dotenv()
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -144,25 +151,28 @@ def formulario_prato_feito():
     if 'usuario' not in session:
         return redirect(url_for('login'))
     return render_template('form_prato.html')
-def gerar_numero_pedido():
-    try:
-        with open('contador.json', 'r') as file:
-            dados = json.load(file)
-    except FileNotFoundError:
-        dados = {"data": "", "numero": 0}
 
+def gerar_numero_pedido():
     hoje = datetime.now().strftime('%Y-%m-%d')
 
-    if dados["data"] != hoje:
-        dados["data"] = hoje
-        dados["numero"] = 1
+    resposta = supabase.table("contador_pedidos").select("*").eq("data", hoje).execute()
+
+    if resposta.data:
+        numero = resposta.data[0]["numero"] + 1
+
+        supabase.table("contador_pedidos").update({
+            "numero": numero
+        }).eq("data", hoje).execute()
+
     else:
-        dados["numero"] += 1
+        numero = 1
 
-    with open('contador.json', 'w') as file:
-        json.dump(dados, file)
+        supabase.table("contador_pedidos").insert({
+            "data": hoje,
+            "numero": numero
+        }).execute()
 
-    return dados["numero"]
+    return numero
 
 @app.route("/pedido", methods=["POST"])
 def pedido():
@@ -250,6 +260,8 @@ def pedido():
 
         dados["marmitas"] = marmitas
         dados["valor_total"] = round(total, 2)
+       
+        
 
         # Troco
         if forma_pagamento == "Dinheiro" and troco_para:
@@ -263,11 +275,23 @@ def pedido():
         else:
             troco = 0
         dados["troco"] = troco
+        
+        supabase.table("pedidos").insert({
+            "numero_pedido": pedido_id,
+            "nome": dados.get("nome"),
+            "telefone": dados.get("telefone"),
+            "endereco": None,
+            "tipo_pedido": "balcao",
+            "forma_pagamento": forma_pagamento,
+            "total": dados.get("valor_total"),
+            "valor_total": dados.get("valor_total"),
+            "tipo_formulario": tipo_formulario,
+            "troco": dados.get("troco"),
+            "troco_para": troco_para,
+            "dados": dados
+        }).execute()
 
-        # Salvar pedido
-        os.makedirs("pedidos", exist_ok=True)
-        with open(f"pedidos/pedidos_{pedido_id}.json", "w", encoding="utf-8") as f:
-            json.dump(dados, f, indent=2, ensure_ascii=False)
+        
 
         return jsonify({"redirect": url_for("recibo_marmita", pedido_id=pedido_id)})
 
@@ -340,11 +364,20 @@ def pedido():
     else:
         troco = 0
     dados["troco"] = troco
-
-    # Salvar pedido
-    os.makedirs("pedidos", exist_ok=True)
-    with open(f"pedidos/pedidos_{pedido_id}.json", "w", encoding="utf-8") as f:
-        json.dump(dados, f, indent=2, ensure_ascii=False)
+    supabase.table("pedidos").insert({
+        "numero_pedido": pedido_id,
+        "nome": dados.get("nome"),
+        "telefone": dados.get("telefone"),
+        "endereco": None,
+        "tipo_pedido": "balcao",
+        "forma_pagamento": forma_pagamento,
+        "total": dados.get("valor_total"),
+        "valor_total": dados.get("valor_total"),
+        "tipo_formulario": tipo_formulario,
+        "troco": dados.get("troco"),
+        "troco_para": troco_para,
+        "dados": dados
+    }).execute()
 
     return jsonify({"redirect": url_for("recibo_prato", pedido_id=pedido_id)})
 
@@ -478,12 +511,12 @@ def salvar_cardapio():
 
 @app.route("/recibo_marmita/<int:pedido_id>")
 def recibo_marmita(pedido_id):
-    try:
-        with open(f"pedidos/pedidos_{pedido_id}.json", "r", encoding="utf-8") as f:
-            dados = json.load(f)
-    except FileNotFoundError:
+    resposta = supabase.table("pedidos").select("dados").eq("numero_pedido", pedido_id).order("id", desc=True).limit(1).execute()
+
+    if not resposta.data:
         return "Pedido não encontrado", 404
 
+    dados = resposta.data[0]["dados"]
     # Conversão segura
     # Dentro de recibo_marmita
     if dados.get("forma_pagamento") == "Dinheiro" and dados.get("troco_para"):
@@ -511,11 +544,12 @@ def recibo_marmita(pedido_id):
 
 @app.route("/recibo_prato/<int:pedido_id>")
 def recibo_prato(pedido_id):
-    try:
-        with open(f"pedidos/pedidos_{pedido_id}.json", "r", encoding="utf-8") as f:
-            dados = json.load(f)
-    except FileNotFoundError:
+    resposta = supabase.table("pedidos").select("dados").eq("numero_pedido", pedido_id).order("id", desc=True).limit(1).execute()
+
+    if not resposta.data:
         return "Pedido não encontrado", 404
+
+    dados = resposta.data[0]["dados"]
 
     # Calcular troco se necessário
     if dados.get("forma_pagamento") == "Dinheiro" and dados.get("troco_para"):
@@ -539,44 +573,73 @@ def recibo_prato(pedido_id):
     )
 
 
-@app.route("/recibo_rawbt.txt")
-def recibo_rawbt():
-    if 'pedido_data' not in session:
+@app.route("/recibo_rawbt.txt/<int:pedido_id>")
+def recibo_rawbt(pedido_id):
+    resposta = supabase.table("pedidos").select("dados").eq("numero_pedido", pedido_id).order("id", desc=True).limit(1).execute()
+
+    if not resposta.data:
         return "Erro: pedido não encontrado", 404
 
-    pedido = session['pedido_data']
+    pedido = resposta.data[0]["dados"]
 
     conteudo = f"""
 Marmitex da Alice
 Cliente: {pedido['nome']}
-Telefone: {pedido['telefone']}
-Endereço: {pedido['endereco']}
+Telefone: {pedido.get('telefone', '')}
+Endereço: {pedido.get('endereco', '')}
 Pedido Nº: {pedido['pedido_id']}
 Data: {pedido['data_hora'].split(" ")[0]} Hora: {pedido['data_hora'].split(" ")[1]}
 """
 
-    for marmita in pedido['marmitas']:
-        conteudo += f"\n1x Marmita ({marmita['tamanho']})\nCarne: {marmita['carne']}"
-        for adicional in marmita['adicionais']:
-            if adicional['quantidade'] > 0:
-                conteudo += f"\n{adicional['quantidade']}x Adicional {adicional['nome']}"
-        for bebida in marmita['bebidas']:
-            if bebida['quantidade'] > 0:
-                conteudo += f"\n{bebida['quantidade']}x {bebida['nome']}"
-        for outro in marmita['outros']:
-            if outro['quantidade'] > 0:
-                conteudo += f"\n{outro['quantidade']}x {outro['nome']}"
+    # MARMITA
+    if "marmitas" in pedido:
+        for marmita in pedido['marmitas']:
+            conteudo += f"\n1x Marmita ({marmita['tamanho']})"
+            if marmita.get("carne"):
+                conteudo += f"\nCarne: {marmita['carne']}"
+
+            for adicional in marmita.get('adicionais', []):
+                if adicional['quantidade'] > 0:
+                    conteudo += f"\n{adicional['quantidade']}x Adicional {adicional['nome']}"
+
+            for bebida in marmita.get('bebidas', []):
+                if bebida['quantidade'] > 0:
+                    conteudo += f"\n{bebida['quantidade']}x {bebida['nome']}"
+
+            for outro in marmita.get('outros', []):
+                if outro['quantidade'] > 0:
+                    conteudo += f"\n{outro['quantidade']}x {outro['nome']}"
+
+    # PRATO
+    if "pratos" in pedido:
+        for prato in pedido['pratos']:
+            conteudo += f"\n1x Prato Feito"
+            for adicional in prato.get('adicionais', []):
+                if adicional['quantidade'] > 0:
+                    conteudo += f"\n{adicional['quantidade']}x {adicional['nome']}"
+            for bebida in prato.get('bebidas', []):
+                if bebida['quantidade'] > 0:
+                    conteudo += f"\n{bebida['quantidade']}x {bebida['nome']}"
+            for outro in prato.get('outros', []):
+                if outro['quantidade'] > 0:
+                    conteudo += f"\n{outro['quantidade']}x {outro['nome']}"
 
     conteudo += f"\n\nTotal: R$ {pedido['valor_total']:.2f}"
     conteudo += f"\nPagamento: {pedido['forma_pagamento']}"
 
     if pedido['forma_pagamento'] == "Dinheiro":
-        conteudo += f"\nTroco para: R$ {pedido['troco_para']:.2f}"
-        conteudo += f"\nTroco: R$ {pedido['troco']:.2f}"
+        try:
+            troco_para = float(str(pedido.get("troco_para", 0)).replace("R$", "").replace(".", "").replace(",", "."))
+        except:
+            troco_para = 0
+
+        troco = float(pedido.get("troco", 0))
+
+        conteudo += f"\nTroco para: R$ {troco_para:.2f}"
+        conteudo += f"\nTroco: R$ {troco:.2f}"
 
     return conteudo, 200, {
-        'Content-Type': 'text/plain; charset=utf-8',
-        'Content-Disposition': 'inline; filename="recibo.txt"'
+        'Content-Type': 'text/plain; charset=utf-8'
     }
 
 if __name__ == '__main__':

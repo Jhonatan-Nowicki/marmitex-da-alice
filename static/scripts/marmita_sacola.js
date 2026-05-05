@@ -29,15 +29,6 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function configurarFormulario() {
-  const tipoPedido = document.getElementById("tipo_pedido");
-  const camposCliente = document.getElementById("campos-cliente");
-  const camposEntrega = document.getElementById("campos-entrega");
-
-  tipoPedido.addEventListener("change", () => {
-    const tipo = tipoPedido.value;
-    camposCliente.style.display = "block";
-    camposEntrega.style.display = tipo === "Entrega" ? "block" : "none";
-  });
 
   document.getElementById("add-marmita").addEventListener("click", () => {
     const tamanho = pegarSelecionado("tamanhos");
@@ -140,18 +131,18 @@ function renderizarSacola() {
 
     const adicionaisHTML = item.adicionais.length
       ? `<p class="font-bold mt-2">Adicionais:</p><ul class="list-disc list-inside">` +
-        item.adicionais.map(a => `<li>${a.quantidade}x ${a.nome}</li>`).join("") +
-        `</ul>` : "";
+      item.adicionais.map(a => `<li>${a.quantidade}x ${a.nome}</li>`).join("") +
+      `</ul>` : "";
 
     const bebidasHTML = item.bebidas.length
       ? `<p class="font-bold mt-2">Bebidas:</p><ul class="list-disc list-inside">` +
-        item.bebidas.map(b => `<li>${b.quantidade}x ${b.nome}</li>`).join("") +
-        `</ul>` : "";
+      item.bebidas.map(b => `<li>${b.quantidade}x ${b.nome}</li>`).join("") +
+      `</ul>` : "";
 
     const outrosHTML = item.outros.length
-      ?`<p class="font-bold mt-2">Outros:</p><ul class="list-disc list-inside">` +
-        item.outros.map(o => `<li>${o.quantidade}x ${o.nome}</li>`).join("") +
-        `</ul>` : "";
+      ? `<p class="font-bold mt-2">Outros:</p><ul class="list-disc list-inside">` +
+      item.outros.map(o => `<li>${o.quantidade}x ${o.nome}</li>`).join("") +
+      `</ul>` : "";
 
     div.innerHTML = `
       <p class="font-bold">Marmita ${index + 1}</p>
@@ -270,16 +261,21 @@ function inserirQuantidades(lista, id) {
 document.getElementById("formulario").addEventListener("submit", function (e) {
   e.preventDefault();
 
-  const tipoPedido = document.getElementById("tipo_pedido").value;
+  if (sacola.length === 0) {
+  alert("Adicione pelo menos uma marmita antes de finalizar o pedido.");
+  return;
+}
+
+
   const nome = document.querySelector("input[name='nome']").value;
-  const telefone = document.querySelector("input[name='telefone']").value;
-  const endereco = document.querySelector("input[name='endereco']").value;
+  const telefone = "";
+  const endereco = "";
   const formaPagamento = document.getElementById("forma_pagamento").value;
   const trocoPara = document.getElementById("troco_para").value;
 
   const dados = {
     tipo_formulario: "marmita",
-    tipo_pedido: tipoPedido,
+    tipo_pedido: "balcao",
     nome,
     telefone,
     endereco,
