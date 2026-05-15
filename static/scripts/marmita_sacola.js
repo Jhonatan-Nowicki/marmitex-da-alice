@@ -79,7 +79,7 @@ function inserirTiposMarmita() {
 
     btn.type = "button";
     btn.className = "btn-option";
-    btn.innerText = tipo;
+    btn.innerText = tipo === "comum" ? "Marmita" : "Marmita Executiva";
     btn.dataset.value = tipo;
 
     btn.addEventListener("click", () => {

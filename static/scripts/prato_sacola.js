@@ -3,6 +3,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const sacola = document.getElementById('sacola');
   let pratos = [];
   let index = 0;
+  let tiposPrato = {};
+  let tipoSelecionado = null;
+  let baseSelecionadaAutomatica = null;
 
   const adicionaisSelecionados = {};
   const bebidasSelecionados = {};
@@ -16,12 +19,14 @@ document.addEventListener('DOMContentLoaded', () => {
       const res = await fetch("/cardapio");
       const data = await res.json();
 
-      const carnes = data.prato.carnes || [];
+      tiposPrato = data.prato.tipos || {};
+
       const adicionais = data.prato.adicionais || {};
       const bebidas = data.bebidas || {};
       const outros = data.outros || {};
 
-      preencherBotoes("carne", carnes, true);
+      preencherTiposPrato();
+
       preencherComQuantidade("adicionais", adicionais, adicionaisSelecionados);
       // Transforma bebidas: { nome: { preco, quantidade } } → { nome: preco }
       const bebidasFormatadas = {};
@@ -38,6 +43,36 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (err) {
       console.error("Erro ao carregar cardápio:", err);
     }
+  }
+
+  function preencherTiposPrato() {
+    const container = document.getElementById("tipos-prato");
+    container.innerHTML = "";
+
+    Object.keys(tiposPrato).forEach(tipo => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "btn-option";
+      btn.dataset.value = tipo;
+      btn.textContent = tipo === "comum" ? "Prato Feito" : "Prato Feito Executivo";
+
+      btn.addEventListener("click", () => {
+        container.querySelectorAll(".btn-option").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+
+        tipoSelecionado = tipo;
+
+        const dadosTipo = tiposPrato[tipo];
+        const tamanhos = Object.keys(dadosTipo.tamanhos || {});
+
+        baseSelecionadaAutomatica = tamanhos[0] || null;
+
+        document.getElementById("bloco-carne-prato").classList.remove("hidden");
+        preencherBotoes("carne", dadosTipo.carnes || [], true);
+      });
+
+      container.appendChild(btn);
+    });
   }
 
   function preencherBotoes(id, lista, exclusivo = false) {
@@ -115,7 +150,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let html = `
     <button type="button" class="absolute top-2 right-2 text-red-600 font-bold text-lg" title="Remover item">&times;</button>
-    <p><strong>Carne:</strong> ${prato.base}</p>
+    <p><strong>Tipo:</strong> ${prato.tipo}</p>
+    <p><strong>Carne:</strong> ${prato.carne}</p>
   `;
 
     const categorias = ["adicionais", "bebidas", "outros"];
@@ -131,7 +167,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     html += `
     <p><strong>Observações:</strong> ${prato.observacao || "Nenhuma"}</p>
+
+    <input type="hidden" name="pratos[${idx}][tipo]" value="${prato.tipo}">
     <input type="hidden" name="pratos[${idx}][base]" value="${prato.base}">
+    <input type="hidden" name="pratos[${idx}][carne]" value="${prato.carne}">
     <input type="hidden" name="pratos[${idx}][observacao]" value="${prato.observacao}">
   `;
 
@@ -165,13 +204,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
   btnAdd.addEventListener('click', () => {
     const baseSelecionada = document.querySelector("#carne .btn-option.active");
+    if (!tipoSelecionado || !baseSelecionadaAutomatica) {
+      alert("Selecione o tipo do prato.");
+      return;
+    }
+
     if (!baseSelecionada) {
       alert("Por favor, selecione a carne do prato.");
       return;
     }
 
     const prato = {
-      base: baseSelecionada.dataset.value,
+      tipo: tipoSelecionado,
+      base: baseSelecionadaAutomatica,
+      carne: baseSelecionada.dataset.value,
       adicionais: getSelecionadosQuantidades(adicionaisSelecionados),
       bebidas: getSelecionadosQuantidades(bebidasSelecionados),
       outros: getSelecionadosQuantidades(outrosSelecionados),
@@ -253,13 +299,13 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 document.addEventListener("DOMContentLoaded", () => {
-    const trocoInput = document.getElementById("troco_para");
+  const trocoInput = document.getElementById("troco_para");
 
-    if (trocoInput) {
-      trocoInput.addEventListener("input", function () {
-        let valor = trocoInput.value.replace(/\D/g, "");
-        valor = (parseInt(valor || 0) / 100).toFixed(2);
-        trocoInput.value = "R$ " + valor.replace(".", ",");
-      });
-    }
-  });
+  if (trocoInput) {
+    trocoInput.addEventListener("input", function () {
+      let valor = trocoInput.value.replace(/\D/g, "");
+      valor = (parseInt(valor || 0) / 100).toFixed(2);
+      trocoInput.value = "R$ " + valor.replace(".", ",");
+    });
+  }
+});
