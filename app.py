@@ -213,9 +213,21 @@ def pedido():
         for marmita in marmitas:
             preco_total_marmita = 0
 
-            # Tamanho da marmita
+           # Tamanho da marmita
+            tipo_marmita = marmita.get("tipo")
             tamanho = marmita.get("tamanho")
-            preco_tamanho = PRECOS["marmita"]["tamanhos"].get(tamanho, 0)
+
+            tipos_marmita = PRECOS.get("marmita", {}).get("tipos", {})
+
+            if not tipo_marmita or tipo_marmita not in tipos_marmita:
+                return jsonify({"erro": f"Tipo de marmita inválido: {tipo_marmita}"}), 400
+
+            tamanhos_marmita = tipos_marmita[tipo_marmita].get("tamanhos", {})
+
+            if not tamanho or tamanho not in tamanhos_marmita:
+                return jsonify({"erro": f"Tamanho inválido para marmita {tipo_marmita}: {tamanho}"}), 400
+
+            preco_tamanho = tamanhos_marmita[tamanho]
             preco_total_marmita += preco_tamanho
 
             # Adicionais
@@ -225,7 +237,11 @@ def pedido():
                 qtd = adicional.get("quantidade", 0)
                 preco_unit = next((a["preco"] for a in PRECOS["marmita"]["adicionais"] if a["nome"] == nome), 0)
                 preco_total_marmita += preco_unit * qtd
-                adicionais_processados.append({"nome": nome, "quantidade": qtd})
+                adicionais_processados.append({
+                "nome": nome,
+                "quantidade": qtd,
+                "preco": preco_unit
+            })
 
             # Bebidas
             bebidas_processadas = []
@@ -258,7 +274,8 @@ def pedido():
             marmita["adicionais"] = adicionais_processados
             marmita["bebidas"] = bebidas_processadas
             marmita["outros"] = outros_processados
-            marmita["preco"] = round(preco_total_marmita, 2)
+            marmita["preco"] = round(preco_tamanho, 2)
+            marmita["preco_total"] = round(preco_total_marmita, 2)
             marmita["observacao"] = marmita.get("observacao", "")
 
             total += preco_total_marmita
@@ -316,9 +333,21 @@ def pedido():
 
             preco_total = 0.0
 
-            # base do prato (valor fixo)
-            preco_total += PRECOS["prato"]["base"]
+            # Base/tamanho do prato
+            tipo_prato = prato.get("tipo")
+            base = prato.get("base")
 
+            tipos_prato = PRECOS.get("prato", {}).get("tipos", {})
+
+            if not tipo_prato or tipo_prato not in tipos_prato:
+                return jsonify({"erro": f"Tipo de prato inválido: {tipo_prato}"}), 400
+
+            tamanhos_prato = tipos_prato[tipo_prato].get("tamanhos", {})
+
+            if not base or base not in tamanhos_prato:
+                return jsonify({"erro": f"Tamanho inválido para prato {tipo_prato}: {base}"}), 400
+
+            preco_total += tamanhos_prato[base]
             # adicionais
             for adicional in adicionais:
                 nome = adicional["nome"]
@@ -391,7 +420,9 @@ def calcular_preco_marmita(marmita):
 
     # Soma tamanho da marmita
     tamanho = marmita.get('tamanho', '')
-    valor += PRECOS['marmita']['tamanhos'].get(tamanho, 0)
+    tipo = marmita.get("tipo", "comum")
+
+    valor += PRECOS['marmita']['tipos'][tipo]['tamanhos'].get(tamanho, 0)
 
     # Adicionais (lista de objetos com nome e quantidade)
     for adicional in marmita.get('adicionais', []):
@@ -428,7 +459,9 @@ def calcular_valor_total_multiplo(marmitas):
     total = 0.0
     for marmita in marmitas:
         tamanho = marmita.get('tamanho', '')
-        valor = PRECOS['marmita']['tamanhos'].get(tamanho, 0)
+        tipo = marmita.get("tipo", "comum")
+
+        valor = PRECOS['marmita']['tipos'][tipo]['tamanhos'].get(tamanho, 0)
 
         # Soma os adicionais com quantidade
         adicionais = marmita.get('adicionais', [])
@@ -456,7 +489,10 @@ def calcular_valor_total(prato):
     adicionais_str = prato.get('adicionais', '')
     adicionais = [a.strip() for a in adicionais_str.split(',') if a.strip()]
 
-    valor = PRECOS['prato']['base']
+    tipo = prato.get("tipo", "comum")
+    tamanho = prato.get("base", "")
+
+    valor = PRECOS['prato']['tipos'][tipo]['tamanhos'].get(tamanho, 0)
     for adicional in adicionais:
         valor += PRECOS['prato']['adicionais'].get(adicional, 0)
     return round(valor, 2)
@@ -469,24 +505,56 @@ def get_cardapio():
             for nome, preco in dicionario.items()
         ]
 
+    def adicionar_quantidade(lista):
+        return [
+            {**item, "quantidade": 0}
+            for item in lista
+        ]
+
     bebidas_formatadas = converter_para_lista(PRECOS.get("bebidas", {}))
     outros_formatados = converter_para_lista(PRECOS.get("outros", {}))
 
-    adicionais_formatados = [
-        {**item, "quantidade": 0}
-        for item in PRECOS['marmita']['adicionais']
-    ]
+    marmita = PRECOS.get("marmita", {})
+    prato = PRECOS.get("prato", {})
+
+    if "tipos" in marmita:
+        tipos_marmita = marmita.get("tipos", {})
+    else:
+        tipos_marmita = {
+            "comum": {
+                "tamanhos": marmita.get("tamanhos", {}),
+                "carnes": marmita.get("carnes", [])
+            },
+            "executivo": {
+                "tamanhos": {},
+                "carnes": []
+            }
+        }
+
+    if "tipos" in prato:
+        tipos_prato = prato.get("tipos", {})
+    else:
+        tipos_prato = {
+            "comum": {
+                "tamanhos": {
+                    "Prato feito": prato.get("base", 0)
+                },
+                "carnes": prato.get("carnes", [])
+            },
+            "executivo": {
+                "tamanhos": {},
+                "carnes": []
+            }
+        }
 
     return jsonify({
         "marmita": {
-            "tamanhos": PRECOS['marmita']['tamanhos'],
-            "carnes": PRECOS['marmita'].get("carnes", []),
-            "adicionais": adicionais_formatados
+            "tipos": tipos_marmita,
+            "adicionais": adicionar_quantidade(marmita.get("adicionais", []))
         },
         "prato": {
-            "base": PRECOS['prato']['base'],
-            "carnes": PRECOS['prato'].get("carnes", []),
-            "adicionais": PRECOS['prato']['adicionais']
+            "tipos": tipos_prato,
+            "adicionais": prato.get("adicionais", {})
         },
         "bebidas": bebidas_formatadas,
         "outros": outros_formatados
@@ -497,21 +565,21 @@ def get_cardapio():
 def salvar_cardapio():
     data = request.get_json()
 
-    # Atualiza os valores de marmita
-    PRECOS['marmita']['tamanhos'] = data['marmita']['tamanhos']
-    PRECOS['marmita']['adicionais'] = data['marmita']['adicionais']
-    PRECOS['marmita']['carnes'] = data['marmita'].get('carnes', [])
+    PRECOS['marmita'] = {
+        "tipos": data['marmita']['tipos'],
+        "adicionais": data['marmita']['adicionais']
+    }
 
-    # Atualiza os valores de prato
-    PRECOS['prato']['base'] = data['prato']['base']
-    PRECOS['prato']['adicionais'] = data['prato']['adicionais']
-    PRECOS['prato']['carnes'] = data['prato'].get('carnes', [])
+    PRECOS['prato'] = {
+        "tipos": data['prato']['tipos'],
+        "adicionais": data['prato']['adicionais']
+    }
 
-    # atualiza os valores de bebidas e outros
     PRECOS['bebidas'] = data.get('bebidas', {})
     PRECOS['outros'] = data.get('outros', {})
 
     salvar_precos(PRECOS)
+
     return jsonify({"status": "sucesso"})
 
 @app.route("/recibo_marmita/<int:pedido_id>")

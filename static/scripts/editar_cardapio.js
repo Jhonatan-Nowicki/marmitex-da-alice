@@ -16,20 +16,26 @@ async function carregarCardapio() {
 
         const { marmita, prato } = data;
 
-        // Preços Marmita
-        Object.entries(marmita.tamanhos).forEach(([tamanho, preco]) => {
-            const input = document.getElementById(`preco-${tamanho.toLowerCase()}`);
-            if (input) input.value = formatarValor(preco);
-        });
+        const marmitaComum = marmita.tipos?.comum || {};
+        const marmitaExecutivo = marmita.tipos?.executivo || {};
 
-        // Preço Prato Feito
-        document.getElementById("preco-prato-feito").value = formatarValor(prato.base);
+        const pratoComum = prato.tipos?.comum || {};
+        const pratoExecutivo = prato.tipos?.executivo || {};
 
-        preencherAdicionais("adicionais-cadastrados-marmita", marmita.adicionais);
-        preencherAdicionais("adicionais-cadastrados-prato", prato.adicionais);
+        preencherTamanhos("tamanhos-cadastrados-comum", marmitaComum.tamanhos || {});
+        preencherTamanhos("tamanhos-cadastrados-executivo", marmitaExecutivo.tamanhos || {});
 
-        preencherCarnes("carnes-cadastradas-marmita", marmita.carnes || []);
-        preencherCarnes("carnes-cadastradas-prato", prato.carnes || []);
+        preencherCarnes("carnes-cadastradas-comum", marmitaComum.carnes || []);
+        preencherCarnes("carnes-cadastradas-executivo", marmitaExecutivo.carnes || []);
+
+        preencherTamanhos("tamanhos-cadastrados-prato-comum", pratoComum.tamanhos || {});
+        preencherTamanhos("tamanhos-cadastrados-prato-executivo", pratoExecutivo.tamanhos || {});
+
+        preencherCarnes("carnes-cadastradas-prato-comum", pratoComum.carnes || []);
+        preencherCarnes("carnes-cadastradas-prato-executivo", pratoExecutivo.carnes || []);
+
+        preencherAdicionais("adicionais-cadastrados-marmita", marmita.adicionais || []);
+        preencherAdicionais("adicionais-cadastrados-prato", prato.adicionais || {});
 
         preencherAdicionais("bebidas-cadastradas", data.bebidas || {});
         preencherAdicionais("outros-cadastrados", data.outros || {});
@@ -92,20 +98,45 @@ function preencherCarnes(id, carnes) {
         ul.appendChild(li);
     });
 }
+function preencherTamanhos(id, tamanhos) {
+    const ul = document.getElementById(id);
+    ul.innerHTML = "";
+
+    Object.entries(tamanhos || {}).forEach(([nome, preco]) => {
+        const li = document.createElement("li");
+        li.className = "flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-md";
+
+        li.innerHTML = `
+            <span class="w-1/2">${nome}</span>
+            <input type="text" class="input-edit w-24" value="${formatarValor(preco)}" oninput="formatarMoeda(this)" />
+            <button class="text-red-500 font-bold" onclick="this.parentElement.remove()">X</button>
+        `;
+
+        ul.appendChild(li);
+    });
+}
 
 
 function configurarBotoes() {
     configurarAdicional("add-adicional-marmita", "novo-adicional-marmita", "preco-adicional-marmita", "adicionais-cadastrados-marmita");
     configurarAdicional("add-adicional-prato", "novo-adicional-prato", "preco-adicional-prato", "adicionais-cadastrados-prato");
 
-    configurarCarne("add-carne-marmita", "input-carne-marmita", "carnes-cadastradas-marmita");
-    configurarCarne("add-carne-prato", "input-carne-prato", "carnes-cadastradas-prato");
-
     configurarAdicional("add-adicional-bebida", "novo-adicional-bebida", "preco-adicional-bebida", "bebidas-cadastradas");
     configurarAdicional("add-adicional-outro", "novo-adicional-outro", "preco-adicional-outro", "outros-cadastrados");
+    configurarTamanho("add-tamanho-comum", "novo-tamanho-comum", "preco-tamanho-comum", "tamanhos-cadastrados-comum");
+    configurarTamanho("add-tamanho-executivo", "novo-tamanho-executivo", "preco-tamanho-executivo", "tamanhos-cadastrados-executivo");
+
+    configurarTamanho("add-tamanho-prato-comum", "novo-tamanho-prato-comum", "preco-tamanho-prato-comum", "tamanhos-cadastrados-prato-comum");
+    configurarTamanho("add-tamanho-prato-executivo", "novo-tamanho-prato-executivo", "preco-tamanho-prato-executivo", "tamanhos-cadastrados-prato-executivo");
+    
+    configurarCarne("add-carne-comum", "input-carne-comum", "carnes-cadastradas-comum");
+    configurarCarne("add-carne-executivo", "input-carne-executivo", "carnes-cadastradas-executivo");
+
+    configurarCarne("add-carne-prato-comum", "input-carne-prato-comum", "carnes-cadastradas-prato-comum");
+    configurarCarne("add-carne-prato-executivo", "input-carne-prato-executivo", "carnes-cadastradas-prato-executivo");
 
 
-    document.getElementById("salvarBtn").addEventListener("click", salvarCardapio);
+
 }
 
 function configurarAdicional(btnId, nomeId, precoId, listaId) {
@@ -153,17 +184,35 @@ function configurarCarne(btnId, inputId, containerId) {
         input.value = "";
     });
 }
+function configurarTamanho(btnId, nomeId, precoId, listaId) {
+    const botao = document.getElementById(btnId);
+    const inputNome = document.getElementById(nomeId);
+    const inputPreco = document.getElementById(precoId);
+    const lista = document.getElementById(listaId);
+
+    botao.addEventListener("click", () => {
+        const nome = inputNome.value.trim();
+        const preco = parseValor(inputPreco.value || "0");
+
+        if (!nome) return;
+
+        const li = document.createElement("li");
+        li.className = "flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-md";
+
+        li.innerHTML = `
+            <span class="w-1/2">${nome}</span>
+            <input type="text" class="input-edit w-24" value="${formatarValor(preco)}" oninput="formatarMoeda(this)" />
+            <button class="text-red-500 font-bold" onclick="this.parentElement.remove()">X</button>
+        `;
+
+        lista.appendChild(li);
+
+        inputNome.value = "";
+        inputPreco.value = "";
+    });
+}
 
 function salvarCardapio() {
-    const getValores = (prefixos) => {
-        const obj = {};
-        prefixos.forEach(p => {
-            const el = document.getElementById(`preco-${p}`);
-            if (el) obj[p] = parseValor(el.value);
-        });
-        return obj;
-    };
-
     const getAdicionais = (id, comoArray = false) => {
         const ul = document.getElementById(id);
 
@@ -175,37 +224,70 @@ function salvarCardapio() {
                 lista.push({ nome, preco });
             });
             return lista;
-        } else {
-            const itens = {};
-            ul.querySelectorAll("li").forEach(li => {
-                const nome = li.querySelector("span").innerText;
-                const preco = parseValor(li.querySelector("input").value);
-                itens[nome] = preco;
-            });
-            return itens;
         }
+
+        const itens = {};
+        ul.querySelectorAll("li").forEach(li => {
+            const nome = li.querySelector("span").innerText;
+            const preco = parseValor(li.querySelector("input").value);
+            itens[nome] = preco;
+        });
+        return itens;
     };
 
     const getCarnes = (id) => {
-        const div = document.getElementById(id);
+        const ul = document.getElementById(id);
         const carnes = [];
-        div.querySelectorAll("input[type='hidden']").forEach(input => {
+
+        ul.querySelectorAll("input[type='hidden']").forEach(input => {
             carnes.push(input.value);
         });
+
         return carnes;
+    };
+
+    const getTamanhos = (id) => {
+        const ul = document.getElementById(id);
+        const tamanhos = {};
+
+        ul.querySelectorAll("li").forEach(li => {
+            const nome = li.querySelector("span").innerText;
+            const preco = parseValor(li.querySelector("input").value);
+            tamanhos[nome] = preco;
+        });
+
+        return tamanhos;
     };
 
     const dados = {
         marmita: {
-            tamanhos: getValores(["mini", "media", "grande", "executiva", "top3"]),
-            adicionais: getAdicionais("adicionais-cadastrados-marmita", true), // <- array!
-            carnes: getCarnes("carnes-cadastradas-marmita")
+            tipos: {
+                comum: {
+                    tamanhos: getTamanhos("tamanhos-cadastrados-comum"),
+                    carnes: getCarnes("carnes-cadastradas-comum")
+                },
+                executivo: {
+                    tamanhos: getTamanhos("tamanhos-cadastrados-executivo"),
+                    carnes: getCarnes("carnes-cadastradas-executivo")
+                }
+            },
+            adicionais: getAdicionais("adicionais-cadastrados-marmita", true)
         },
+
         prato: {
-            base: parseValor(document.getElementById("preco-prato-feito").value),
-            adicionais: getAdicionais("adicionais-cadastrados-prato"),
-            carnes: getCarnes("carnes-cadastradas-prato")
+            tipos: {
+                comum: {
+                    tamanhos: getTamanhos("tamanhos-cadastrados-prato-comum"),
+                    carnes: getCarnes("carnes-cadastradas-prato-comum")
+                },
+                executivo: {
+                    tamanhos: getTamanhos("tamanhos-cadastrados-prato-executivo"),
+                    carnes: getCarnes("carnes-cadastradas-prato-executivo")
+                }
+            },
+            adicionais: getAdicionais("adicionais-cadastrados-prato")
         },
+
         bebidas: getAdicionais("bebidas-cadastradas"),
         outros: getAdicionais("outros-cadastrados")
     };

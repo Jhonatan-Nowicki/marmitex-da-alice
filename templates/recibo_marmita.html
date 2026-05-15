@@ -83,8 +83,6 @@
       <div class="mb-2 font-bold">
         <p class="font-bold">Cliente</p>
         <p>Nome: {{ nome }}</p>
-        <p>Telefone: {{ telefone }}</p>
-        <p>Endereço: {{ endereco }}</p>
         <p>Pedido Nº: {{ pedido_id }}</p>
       </div>
 
@@ -109,8 +107,11 @@
             {% for marmita in marmitas %}
             <tr class="border-t border-gray-400 align-top">
               <td>1</td>
-              <td>Marmita ({{ marmita.tamanho }})<br>{{ marmita.carne }}</td>
-              <td class="text-right">R$ {{ "%.2f"|format(PRECOS.marmita.tamanhos[marmita.tamanho]) }}</td>
+              <td>
+                Marmita {{ marmita.tamanho }}<br>
+                {{ marmita.carne }}
+              </td>
+              <td class="text-right">R$ {{ "%.2f"|format(marmita.preco) }}</td>
             </tr>
 
             {% if marmita.observacao %}
@@ -126,10 +127,7 @@
               <td>{{ adicional.quantidade }}</td>
               <td>Adicional: {{ adicional.nome }}</td>
               <td class="text-right">
-                {% set precos_adicional = PRECOS.marmita.adicionais | selectattr('nome', 'equalto', adicional.nome) |
-                map(attribute='preco') | list %}
-                R$ {{ '%.2f'|format((precos_adicional[0] if precos_adicional|length > 0 else 0) * adicional.quantidade)
-                }}
+                R$ {{ '%.2f'|format(adicional.preco * adicional.quantidade) }}
               </td>
             </tr>
             {% endif %}
@@ -211,14 +209,12 @@
   <textarea id="rawbt-content" style="display:none">
 ****** MARMITEX DA ALICE ******
 Cliente: {{ nome }}
-Telefone: {{ telefone }}
-Endereco: {{ endereco }}
 Pedido: {{ pedido_id }}
 Data: {{ data_hora.split(" ")[0] }}   Hora: {{ data_hora.split(" ")[1] }}
 
 ------------------------------
 {% for marmita in marmitas %}
-1x Marmita ({{ marmita.tamanho }}) - {{ marmita.carne }}
+1x Marmita {{ marmita.tipo | capitalize }} ({{ marmita.tamanho }}) - {{ marmita.carne }}
 {% if marmita.observacao %}Obs: {{ marmita.observacao | upper }}{% endif %}
 {% for adicional in marmita.adicionais %}
 {% if adicional.quantidade > 0 %}{{ adicional.quantidade }}x Adicional {{ adicional.nome }}{% endif %}

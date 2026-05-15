@@ -4,7 +4,9 @@ const sacolaDiv = document.getElementById("sacola");
 let bebidasData = [];
 let outrosData = [];
 let adicionaisData = [];
-
+let tiposMarmita = {};
+let tipoSelecionado = null;
+let cardapioGlobal = null;
 // DOM carregado
 document.addEventListener("DOMContentLoaded", () => {
   configurarFormulario();
@@ -13,12 +15,11 @@ document.addEventListener("DOMContentLoaded", () => {
   fetch('/cardapio')
     .then(res => res.json())
     .then(cardapio => {
-      inserirOpcoes(cardapio.marmita.tamanhos, "tamanhos");
-      inserirOpcoes(cardapio.marmita.carnes, "carnes");
-      adicionaisData = cardapio.marmita.adicionais;
-      inserirQuantidades(adicionaisData, "adicionais");
 
+      cardapioGlobal = cardapio;
+      tiposMarmita = cardapio.marmita.tipos;
 
+      inserirTiposMarmita();
 
       bebidasData = cardapio.bebidas;
       outrosData = cardapio.outros;
@@ -50,6 +51,7 @@ function configurarFormulario() {
     }
 
     const item = {
+      tipo: tipoSelecionado,
       tamanho,
       carne,
       adicionais: adicionaisSelecionados,
@@ -61,6 +63,54 @@ function configurarFormulario() {
     renderizarSacola();
     limparSelecoes();
   });
+}
+function inserirTiposMarmita() {
+  const container = document.getElementById("tamanhos");
+
+  container.innerHTML = `
+    <div id="tipos-marmita" class="flex flex-wrap gap-2 mb-4"></div>
+  `;
+
+  const tiposDiv = document.getElementById("tipos-marmita");
+
+  Object.keys(tiposMarmita).forEach(tipo => {
+
+    const btn = document.createElement("button");
+
+    btn.type = "button";
+    btn.className = "btn-option";
+    btn.innerText = tipo;
+    btn.dataset.value = tipo;
+
+    btn.addEventListener("click", () => {
+
+      document.querySelectorAll("#tipos-marmita .btn-option")
+        .forEach(b => b.classList.remove("active"));
+
+      btn.classList.add("active");
+
+      tipoSelecionado = tipo;
+
+      carregarTipoMarmita(tipo);
+    });
+
+    tiposDiv.appendChild(btn);
+  });
+}
+
+function carregarTipoMarmita(tipo) {
+  document.getElementById("bloco-tamanhos").classList.remove("hidden");
+  document.getElementById("bloco-carnes").classList.remove("hidden");
+  document.getElementById("bloco-adicionais").classList.remove("hidden");
+
+  const dados = tiposMarmita[tipo];
+
+  inserirOpcoes(dados.tamanhos, "tamanhos");
+  inserirOpcoes(dados.carnes, "carnes");
+
+  adicionaisData = cardapioGlobal.marmita.adicionais || [];
+
+  inserirQuantidades(adicionaisData, "adicionais");
 }
 
 function configurarPagamento() {
@@ -262,9 +312,9 @@ document.getElementById("formulario").addEventListener("submit", function (e) {
   e.preventDefault();
 
   if (sacola.length === 0) {
-  alert("Adicione pelo menos uma marmita antes de finalizar o pedido.");
-  return;
-}
+    alert("Adicione pelo menos uma marmita antes de finalizar o pedido.");
+    return;
+  }
 
 
   const nome = document.querySelector("input[name='nome']").value;

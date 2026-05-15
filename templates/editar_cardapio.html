@@ -51,59 +51,64 @@
             <section class="bg-white p-4 rounded-xl shadow">
                 <h2 class="text-xl font-semibold mb-4 text-center">Marmita</h2>
 
-                <!-- Preços -->
+                <!-- Tamanhos - Marmita Comum -->
                 <div class="mb-6 border border-gray-300 rounded-xl p-4">
-                    <h3 class="font-semibold mb-3">Valores da Marmita</h3>
-                    <div class="space-y-3">
-                        <div
-                            class="flex items-center justify-between gap-2 border border-gray-300 rounded-md px-3 py-2">
-                            <label class="font-medium w-24">Mini</label>
-                            <input type="text" id="preco-mini" class="input-edit" placeholder="R$"
-                                oninput="formatarMoeda(this)" />
-                        </div>
-                        <div
-                            class="flex items-center justify-between gap-2 border border-gray-300 rounded-md px-3 py-2">
-                            <label class="font-medium w-24">Média</label>
-                            <input type="text" id="preco-media" class="input-edit" placeholder="R$"
-                                oninput="formatarMoeda(this)" />
-                        </div>
-                        <div
-                            class="flex items-center justify-between gap-2 border border-gray-300 rounded-md px-3 py-2">
-                            <label class="font-medium w-24">Grande</label>
-                            <input type="text" id="preco-grande" class="input-edit" placeholder="R$"
-                                oninput="formatarMoeda(this)" />
-                        </div>
-                        <div
-                            class="flex items-center justify-between gap-2 border border-gray-300 rounded-md px-3 py-2">
-                            <label class="font-medium w-24">Executiva</label>
-                            <input type="text" id="preco-executiva" class="input-edit" placeholder="R$"
-                                oninput="formatarMoeda(this)" />
-                        </div>
-                        <div
-                            class="flex items-center justify-between gap-2 border border-gray-300 rounded-md px-3 py-2">
-                            <label class="font-medium w-24">Top 3</label>
-                            <input type="text" id="preco-top3" class="input-edit" placeholder="R$"
-                                oninput="formatarMoeda(this)" />
-                        </div>
+                    <h3 class="font-semibold mb-3">Marmita Comum</h3>
+
+                    <ul id="tamanhos-cadastrados-comum" class="space-y-2 mb-3"></ul>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        <input type="text" id="novo-tamanho-comum" class="input-edit" placeholder="Nome do tamanho" />
+                        <input type="text" id="preco-tamanho-comum" class="input-edit" placeholder="Valor (R$)"
+                            oninput="formatarMoeda(this)" />
+                        <button id="add-tamanho-comum" type="button" class="btn-option">+ Adicionar</button>
                     </div>
                 </div>
 
-                <!-- Carnes -->
-                <div class="mb-6">
-                    <h3 class="font-semibold mb-2">Carnes</h3>
+                <!-- Tamanhos - Executivo -->
+                <div class="mb-6 border border-gray-300 rounded-xl p-4">
+                    <h3 class="font-semibold mb-3">Executivo</h3>
+
+                    <ul id="tamanhos-cadastrados-executivo" class="space-y-2 mb-3"></ul>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        <input type="text" id="novo-tamanho-executivo" class="input-edit"
+                            placeholder="Nome do tamanho" />
+                        <input type="text" id="preco-tamanho-executivo" class="input-edit" placeholder="Valor (R$)"
+                            oninput="formatarMoeda(this)" />
+                        <button id="add-tamanho-executivo" type="button" class="btn-option">+ Adicionar</button>
+                    </div>
+                </div>
+
+                <!-- Carnes - Marmita Comum -->
+                <div class="mb-6 border border-gray-300 rounded-xl p-4">
+                    <h3 class="font-semibold mb-2">Carnes - Marmita Comum</h3>
                     <div class="flex gap-2 mt-2">
-                        <input type="text" id="input-carne-marmita" class="input-edit" placeholder="Nova carne" />
-                        <button id="add-carne-marmita" class="btn-option">+ Adicionar</button>
+                        <input type="text" id="input-carne-comum" class="input-edit" placeholder="Nova carne comum" />
+                        <button id="add-carne-comum" type="button" class="btn-option">+ Adicionar</button>
                     </div>
                     <div class="mt-3">
                         <p class="font-medium mb-1">Carnes cadastradas:</p>
-                        <ul id="carnes-cadastradas-marmita" class="space-y-1 text-sm"></ul>
+                        <ul id="carnes-cadastradas-comum" class="space-y-1 text-sm"></ul>
+                    </div>
+                </div>
 
+                <!-- Carnes - Executivo -->
+                <div class="mb-6 border border-gray-300 rounded-xl p-4">
+                    <h3 class="font-semibold mb-2">Carnes - Executivo</h3>
+                    <div class="flex gap-2 mt-2">
+                        <input type="text" id="input-carne-executivo" class="input-edit"
+                            placeholder="Nova carne executivo" />
+                        <button id="add-carne-executivo" type="button" class="btn-option">+ Adicionar</button>
+                    </div>
+                    <div class="mt-3">
+                        <p class="font-medium mb-1">Carnes cadastradas:</p>
+                        <ul id="carnes-cadastradas-executivo" class="space-y-1 text-sm"></ul>
                     </div>
                 </div>
 
                 <!-- Adicionais -->
-                <div>
+                <div class="mb-6 border border-gray-300 rounded-xl p-4">
                     <h3 class="font-semibold mb-2">Adicionais</h3>
                     <ul id="adicionais-cadastrados-marmita" class="space-y-1 mb-2"></ul>
                     <div class="grid grid-cols-3 gap-2 mt-2">
@@ -120,29 +125,66 @@
             <section class="bg-white p-4 rounded-xl shadow">
                 <h2 class="text-xl font-semibold mb-4 text-center">Prato Feito</h2>
 
-                <!-- Valor do prato feito -->
-                <div class="border border-gray-300 rounded-md px-3 py-2 flex items-center justify-between gap-2 mb-6">
-                    <label class="font-medium w-40">Valor do Prato Feito</label>
-                    <input type="text" id="preco-prato-feito" class="input-edit" placeholder="R$"
-                        oninput="formatarMoeda(this)" />
+                <!-- Prato Feito Comum -->
+                <div class="mb-6 border border-gray-300 rounded-xl p-4">
+                    <h3 class="font-semibold mb-3">Prato Feito Comum</h3>
+
+                    <ul id="tamanhos-cadastrados-prato-comum" class="space-y-2 mb-3"></ul>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        <input type="text" id="novo-tamanho-prato-comum" class="input-edit"
+                            placeholder="Nome do tamanho" />
+                        <input type="text" id="preco-tamanho-prato-comum" class="input-edit" placeholder="Valor (R$)"
+                            oninput="formatarMoeda(this)" />
+                        <button id="add-tamanho-prato-comum" type="button" class="btn-option">+ Adicionar</button>
+                    </div>
                 </div>
 
-                <!-- Carnes -->
-                <div class="mb-6">
-                    <h3 class="font-semibold mb-2">Carnes</h3>
+                <!-- Prato Feito Executivo -->
+                <div class="mb-6 border border-gray-300 rounded-xl p-4">
+                    <h3 class="font-semibold mb-3">Prato Feito Executivo</h3>
+
+                    <ul id="tamanhos-cadastrados-prato-executivo" class="space-y-2 mb-3"></ul>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        <input type="text" id="novo-tamanho-prato-executivo" class="input-edit"
+                            placeholder="Nome do tamanho" />
+                        <input type="text" id="preco-tamanho-prato-executivo" class="input-edit"
+                            placeholder="Valor (R$)" oninput="formatarMoeda(this)" />
+                        <button id="add-tamanho-prato-executivo" type="button" class="btn-option">+ Adicionar</button>
+                    </div>
+                </div>
+
+                <!-- Carnes - Prato Comum -->
+                <div class="mb-6 border border-gray-300 rounded-xl p-4">
+                    <h3 class="font-semibold mb-2">Carnes - Prato Comum</h3>
                     <div class="flex gap-2 mt-2">
-                        <input type="text" id="input-carne-prato" class="input-edit" placeholder="Nova carne" />
-                        <button id="add-carne-prato" class="btn-option">+ Adicionar</button>
+                        <input type="text" id="input-carne-prato-comum" class="input-edit"
+                            placeholder="Nova carne comum" />
+                        <button id="add-carne-prato-comum" type="button" class="btn-option">+ Adicionar</button>
                     </div>
                     <div class="mt-3">
                         <p class="font-medium mb-1">Carnes cadastradas:</p>
-                        <ul id="carnes-cadastradas-prato" class="space-y-1 text-sm"></ul>
+                        <ul id="carnes-cadastradas-prato-comum" class="space-y-1 text-sm"></ul>
+                    </div>
+                </div>
 
+                <!-- Carnes - Prato Executivo -->
+                <div class="mb-6 border border-gray-300 rounded-xl p-4">
+                    <h3 class="font-semibold mb-2">Carnes - Prato Executivo</h3>
+                    <div class="flex gap-2 mt-2">
+                        <input type="text" id="input-carne-prato-executivo" class="input-edit"
+                            placeholder="Nova carne executivo" />
+                        <button id="add-carne-prato-executivo" type="button" class="btn-option">+ Adicionar</button>
+                    </div>
+                    <div class="mt-3">
+                        <p class="font-medium mb-1">Carnes cadastradas:</p>
+                        <ul id="carnes-cadastradas-prato-executivo" class="space-y-1 text-sm"></ul>
                     </div>
                 </div>
 
                 <!-- Adicionais -->
-                <div>
+                <div class="mb-6 border border-gray-300 rounded-xl p-4">
                     <h3 class="font-semibold mb-2">Adicionais</h3>
                     <ul id="adicionais-cadastrados-prato" class="space-y-1 mb-2"></ul>
                     <div class="grid grid-cols-3 gap-2 mt-2">
@@ -150,7 +192,7 @@
                             placeholder="Nome do adicional" />
                         <input type="text" id="preco-adicional-prato" class="input-edit" placeholder="Valor (R$)"
                             oninput="formatarMoeda(this)" />
-                        <button id="add-adicional-prato" class="btn-option">+ Adicionar</button>
+                        <button id="add-adicional-prato" type="button" class="btn-option">+ Adicionar</button>
                     </div>
                 </div>
             </section>
