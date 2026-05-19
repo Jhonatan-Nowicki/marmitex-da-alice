@@ -373,7 +373,9 @@ def pedido():
                 outro["preco"] = preco_unit
 
             pratos_processados.append({
+                "tipo": tipo_prato,
                 "base": base,
+                "carne": prato.get("carne"),
                 "adicionais": adicionais,
                 "bebidas": bebidas,
                 "outros": outros,
