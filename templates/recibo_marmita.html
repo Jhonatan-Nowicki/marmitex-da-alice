@@ -53,12 +53,19 @@
         right: 4mm;
         top: 0;
         width: 48mm;
+
         font-size: 11px;
+        line-height: 1.3;
+
         padding: 0;
         margin: 0;
+
         text-align: left;
+
         background-color: white !important;
-        font-weight: bold;
+
+        font-family: Arial Black, Arial, sans-serif;
+        font-weight: 900;
       }
 
       .no-print {
@@ -67,7 +74,7 @@
 
       .print-area * {
         font-family: Arial, sans-serif !important;
-        font-weight: 700 !important;
+        font-weight: 900 !important;
       }
 
       td,
@@ -211,49 +218,57 @@
     <a id="rawbt-link" style="display:none"></a>
   </div>
 
-  <textarea id="rawbt-content" style="display:none">
-****** MARMITEX DA ALICE ******
+  <textarea id="rawbt-content" style="display:none">======================
+  MARMITEX DA ALICE
+======================
 Cliente: {{ nome }}
 Pedido: {{ pedido_id }}
-Data: {{ data_hora.split(" ")[0] }}   Hora: {{ data_hora.split(" ")[1] }}
-
+Data: {{ data_hora.split(" ")[0] }} Hora: {{ data_hora.split(" ")[1] }}
 ------------------------------
-{% for marmita in marmitas %}
+{%- for marmita in marmitas %}
 1x Marmita {{ marmita.tipo | capitalize }} ({{ marmita.tamanho }}) - {{ marmita.carne }}
-{% if marmita.observacao %}Obs: {{ marmita.observacao | upper }}{% endif %}
-{% for adicional in marmita.adicionais %}
-{% if adicional.quantidade > 0 %}{{ adicional.quantidade }}x Adicional {{ adicional.nome }}{% endif %}
-{% endfor %}
-{% for bebida in marmita.bebidas %}
-{% if bebida.quantidade > 0 %}{{ bebida.quantidade }}x {{ bebida.nome }}{% endif %}
-{% endfor %}
-{% for outro in marmita.outros %}
-{% if outro.quantidade > 0 %}{{ outro.quantidade }}x {{ outro.nome }}{% endif %}
-{% endfor %}
-{% if not loop.last %}------------------------------{% endif %}
-{% endfor %}
+{%- if marmita.observacao %}
+Obs: {{ marmita.observacao | upper }}
+{%- endif %}
+{%- for adicional in marmita.adicionais %}
+{%- if adicional.quantidade > 0 %}
+{{ adicional.quantidade }}x Adicional {{ adicional.nome }}
+{%- endif %}
+{%- endfor %}
+{%- for bebida in marmita.bebidas %}
+{%- if bebida.quantidade > 0 %}
+{{ bebida.quantidade }}x {{ bebida.nome }}
+{%- endif %}
+{%- endfor %}
+{%- for outro in marmita.outros %}
+{%- if outro.quantidade > 0 %}
+{{ outro.quantidade }}x {{ outro.nome }}
+{%- endif %}
+{%- endfor %}
 ------------------------------
+{%- endfor %}
 Total: R$ {{ '%.2f' | format(valor_total) }}
 Pagamento: {% if forma_pagamento == "Cartão" %}Cartao{% else %}{{ forma_pagamento }}{% endif %}
-{% if forma_pagamento == "Dinheiro" %}
+{%- if forma_pagamento == "Dinheiro" %}
 Troco para: R$ {{ '%.2f' | format(troco_para) }}
 Troco: R$ {{ '%.2f' | format(troco) }}
-{% endif %}
-Obrigado pela preferencia!
-  </textarea>
+{%- endif %}
+Obrigado pela preferencia!</textarea>
 
   <script>
     function imprimirReciboInteligente() {
       const isAndroid = /android/i.test(navigator.userAgent);
-      if (isAndroid) {
-        const texto = "MARMITEX DA ALICE\n" + document.getElementById("rawbt-content").value;
-        const encoded = encodeURIComponent(texto.replace(/\n/g, "\r\n"));
-        const rawbtUrl = `rawbt://print?text=${encoded}`;
-        const link = document.getElementById("rawbt-link");
-        link.setAttribute("href", rawbtUrl);
-        link.click();
 
-        // ✅ Redireciona após 6 segundos
+      if (isAndroid) {
+        const texto = document.getElementById("rawbt-content").value;
+
+        const encoded = encodeURIComponent(texto.replace(/\n/g, "\r\n"));
+
+        const rawbtUrl =
+          `intent:${encoded}#Intent;scheme=rawbt;package=ru.a402d.rawbtprinter;end;`;
+
+        window.location.href = rawbtUrl;
+
         setTimeout(() => {
           window.location.href = "/escolha";
         }, 6000);
